@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-# check_pycurl ; -*-Python-*-
-# Copyright James Powell 2013-2019 / jamespo [at] gmail [dot] com
+# check_pycurl3 ; -*-Python-*-
+# Copyright James Powell 2013-2021 / jamespo [at] gmail [dot] com
 # This program is distributed under the terms of the GNU General Public License v3
 
 import pycurl
@@ -209,7 +209,7 @@ def get_cli_options():
                       dest="debug", action="store_true", default=False)
     parser.add_option("--insecure", dest="insecure", action="store_true",
                       default=False)
-    parser.add_option("--useragent", dest="user_agent", default="curl/7.66.0")
+    parser.add_option("--useragent", dest="user_agent", default="check_pycurl3")
     return parser
 
 

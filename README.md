@@ -89,7 +89,7 @@ An alternate test is for presence of regex in the output (--test regex:t.st)
     const LocalPluginDir = "/usr/local/nagios/plugins"
 
     object CheckCommand "pycurl" {
-          command = [ LocalPluginDir + "/check_pycurl" ]
+          command = [ LocalPluginDir + "/check_pycurl3" ]
           arguments = {
                     "--url" = {
                           value = "$url$"
