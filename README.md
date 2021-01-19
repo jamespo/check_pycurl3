@@ -122,3 +122,8 @@ An alternate test is for presence of regex in the output (--test regex:t.st)
 
       vars.urls = ["https://webscalability.com", "https://www.amazon.co.uk"]
     }
+
+## Notes
+
+If you get an error like *"DeprecationWarning: PY_SSIZE_T_CLEAN will be required for '#' formats"* ensure you are running the latest version of pycurl (7.43.0.6 onwards) due to https://github.com/pycurl/pycurl/pull/600
+
