@@ -31,6 +31,7 @@ class CheckPyCurlOptions(object):
         self.failaterror = True
         self.debug = False
         self.user_agent = "curl/7.66.0"
+        self.flags = {}  # for other flags not explicitly in attr
 
 
 class CheckPyCurlMulti(object):
@@ -65,13 +66,21 @@ class CheckPyCurlMulti(object):
                     CheckPyCurlOptions.cookiejar = True
             elif global_opt == 'urls':
                 # loop round urls in object & create checkobjects
+                # (this would be last section in runfile)
                 for url in runyaml['urls']:
                     local_options = copy.copy(global_options)
                     for opt in url:
                         setattr(local_options, opt, url[opt])
                     setattr(local_options, 'debug', self.debug)  # set debug if required
                     self.checkoptobjs.append(local_options)
+            elif global_opts == 'flags':
+                # TODO: if not an alias or "special" set in hash - then check hash in
+                # create_curl_obj and set attributes generically, eg:
+                # c.setopt(getattr(c, 'ATTRIBUTE'),
+                for flag in flags:
+                    global_options.flags[flag] = runyaml['flags'][flag]
             else:
+                # explicit attribute (eg insecure)
                 setattr(global_options, global_opt, runyaml[global_opt])
 
     def check_runfile(self):
