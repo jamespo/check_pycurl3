@@ -4,6 +4,7 @@
 # Copyright James Powell 2013-2021 / jamespo [at] gmail [dot] com
 # This program is distributed under the terms of the GNU General Public License v3
 
+import json
 import pycurl
 from io import BytesIO
 import uuid
@@ -31,7 +32,7 @@ class CheckPyCurlOptions(object):
         self.failaterror = True
         self.debug = False
         self.user_agent = "curl/7.66.0"
-        self.flags = {}  # for other flags not explicitly in attr
+        self.flags = []  # for other flags not explicitly in attr
 
 
 class CheckPyCurlMulti(object):
@@ -74,11 +75,8 @@ class CheckPyCurlMulti(object):
                     setattr(local_options, 'debug', self.debug)  # set debug if required
                     self.checkoptobjs.append(local_options)
             elif global_opts == 'flags':
-                # TODO: if not an alias or "special" set in hash - then check hash in
-                # create_curl_obj and set attributes generically, eg:
-                # c.setopt(getattr(c, 'ATTRIBUTE'),
-                for flag in flags:
-                    global_options.flags[flag] = runyaml['flags'][flag]
+                # if not an alias or "special" set in hash
+                global_options.flags = runyaml['flags']
             else:
                 # explicit attribute (eg insecure)
                 setattr(global_options, global_opt, runyaml[global_opt])
@@ -112,23 +110,22 @@ class CheckPyCurl(object):
         self.options = options
         self.results = dict()
         self.prev_matches = prev_matches
-        (self.successtest, self.successcheck) = options.test.split(':')
+        self.successtest, self.successcheck = options.test.split(':')
 
     def create_curl_obj(self):
         '''create pycurl object & set options'''
         c = pycurl.Curl()
-        c.setopt(c.URL, self.options.url)
-        c.setopt(c.CONNECTTIMEOUT, self.options.connecttimeout)
-        c.setopt(c.TIMEOUT, self.options.timeout)
-        c.setopt(c.FOLLOWLOCATION, self.options.location)
-        c.setopt(c.SSL_VERIFYPEER, self.options.insecure)
-        c.setopt(c.USERAGENT, self.options.user_agent)
-        c.setopt(c.VERBOSE, self.options.debug)
+        self._set_manual_options(c)
         if getattr(self.options, 'cookiejar', False):
             c.setopt(pycurl.COOKIEJAR, self.options.tmpfile)
             c.setopt(pycurl.COOKIEFILE, self.options.tmpfile)
         if self.options.proxy is not None:
             c.setopt(c.PROXY, self.options.proxy)
+        for flag in self.options.flags:
+            # "dynamic" curl option setting
+            if self.options.debug:
+                print("Flag: %s: %s" % (flag, self.options.flags[flag]))
+            c.setopt(getattr(c, flag.upper()), self.options.flags[flag])
         # if a POST, set up options
         if getattr(self.options, 'postdata', None) is not None:
             post_params = {}
@@ -150,6 +147,18 @@ class CheckPyCurl(object):
             c.setopt(pycurl.POST, 1)
         return c
 
+
+    def _set_manual_options(self, c):
+        '''set manual options on curl object'''
+        c.setopt(c.URL, self.options.url)
+        c.setopt(c.CONNECTTIMEOUT, self.options.connecttimeout)
+        c.setopt(c.TIMEOUT, self.options.timeout)
+        c.setopt(c.FOLLOWLOCATION, self.options.location)
+        c.setopt(c.SSL_VERIFYPEER, self.options.insecure)
+        c.setopt(c.USERAGENT, self.options.user_agent)
+        c.setopt(c.VERBOSE, self.options.debug)
+
+    
     def curl(self):
         '''make the request'''
         buf = BytesIO()
@@ -219,13 +228,18 @@ def get_cli_options():
     parser.add_option("--insecure", dest="insecure", action="store_true",
                       default=False)
     parser.add_option("--useragent", dest="user_agent", default="check_pycurl3")
-    return parser
+    parser.add_option("--flags", dest="flags", default="")
+    options, args = parser.parse_args()
+    if options.flags == '':
+        options.flags = {}  # TODO: parse flags
+    else:
+        options.flags = json.loads(options.flags)
+    return options
 
 
 def main():
     '''get options, do checks, return results'''
-    parser = get_cli_options()
-    (options, args) = parser.parse_args()
+    options = get_cli_options()
     (rc, rcstr) = checkargs(options)
     if rc != 3:
         if options.url is not None:

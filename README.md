@@ -32,13 +32,17 @@ Just install the dependencies, copy the script to your standard path for nagios 
       --proxy=PROXY
       --location            Follow redirects
       --insecure
+      --flags flags
 
-check_pycurl can run in one of two ways, a simple one-off http check (specify the url with -u) or with a runfile which is written in yaml and can be used to specify multi-stage url checks (eg logging in then checking for success).
+check_pycurl can run in one of two ways, a simple one shot http check (specify the url with -u) or with a runfile which is written in yaml and can be used to specify multi-stage url checks (eg logging in then checking for success).
 
 By default check_pycurl will test for HTTP 200 code (--test code:200)
 
 An alternate test is for presence of regex in the output (--test regex:t.st)
 
+**EXAMPLE ONE SHOT USE**
+
+    check_pycurl3 --flags '{ "path_as_is": 1 }' -u https://jamespo.org.uk
 
 **EXAMPLE RUNFILE**
 
