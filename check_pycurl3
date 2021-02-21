@@ -7,6 +7,7 @@
 import json
 import pycurl
 from io import BytesIO
+from collections import ChainMap
 import uuid
 import sys
 import os
@@ -74,9 +75,12 @@ class CheckPyCurlMulti(object):
                         setattr(local_options, opt, url[opt])
                     setattr(local_options, 'debug', self.debug)  # set debug if required
                     self.checkoptobjs.append(local_options)
-            elif global_opts == 'flags':
+            elif global_opt == 'flags':
                 # if not an alias or "special" set in hash
-                global_options.flags = runyaml['flags']
+                if self.debug:
+                    print("DEBUG: Setting global_options.flags to %s" % runyaml['flags'])
+                # convert list of dicts to single dict
+                global_options.flags = dict(ChainMap(*runyaml['flags']))
             else:
                 # explicit attribute (eg insecure)
                 setattr(global_options, global_opt, runyaml[global_opt])
