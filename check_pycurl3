@@ -196,7 +196,7 @@ class CheckPyCurl(object):
                 self.results['rc'] = 1
         except pycurl.error as excep:
             self.results['rc'] = 2
-            self.results['status'] = excep[1]
+            self.results['status'] = excep.args[1]
 
         buf.close()
 
