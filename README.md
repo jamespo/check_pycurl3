@@ -44,6 +44,9 @@ An alternate test is for presence of regex in the output (--test regex:t.st)
 
     check_pycurl3 --flags '{ "path_as_is": 1 }' -u https://jamespo.org.uk
 
+	check_pycurl3 --flags '{ "resolve": "www.reddit.com:443:151.101.129.140" }' \
+	-u https://www.reddit.com
+
 **EXAMPLE RUNFILE**
 
     ---

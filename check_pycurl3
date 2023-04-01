@@ -125,11 +125,16 @@ class CheckPyCurl(object):
             c.setopt(pycurl.COOKIEFILE, self.options.tmpfile)
         if self.options.proxy is not None:
             c.setopt(c.PROXY, self.options.proxy)
+        # set the flags
         for flag in self.options.flags:
             # "dynamic" curl option setting
             if self.options.debug:
                 print("Flag: %s: %s" % (flag, self.options.flags[flag]))
-            c.setopt(getattr(c, flag.upper()), self.options.flags[flag])
+            if flag == 'resolve':
+                # args have to be list
+                c.setopt(getattr(c, flag.upper()), self.options.flags[flag].split(','))
+            else:
+                c.setopt(getattr(c, flag.upper()), self.options.flags[flag])
         # if a POST, set up options
         if getattr(self.options, 'postdata', None) is not None:
             post_params = {}
@@ -235,7 +240,7 @@ def get_cli_options():
     parser.add_option("--flags", dest="flags", default="")
     options, args = parser.parse_args()
     if options.flags == '':
-        options.flags = {}  # TODO: parse flags
+        options.flags = {}
     else:
         options.flags = json.loads(options.flags)
     return options
