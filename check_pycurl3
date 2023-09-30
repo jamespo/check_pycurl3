@@ -20,6 +20,7 @@ from optparse import OptionParser
 
 class CheckPyCurlOptions(object):
     '''class to contain check options for multi-mode'''
+
     def __init__(self):
         '''set defaults if not present'''
         # correlate to CLI params for single-use mode
@@ -73,12 +74,14 @@ class CheckPyCurlMulti(object):
                     local_options = copy.copy(global_options)
                     for opt in url:
                         setattr(local_options, opt, url[opt])
-                    setattr(local_options, 'debug', self.debug)  # set debug if required
+                    # set debug if required
+                    setattr(local_options, 'debug', self.debug)
                     self.checkoptobjs.append(local_options)
             elif global_opt == 'flags':
                 # if not an alias or "special" set in hash
                 if self.debug:
-                    print("DEBUG: Setting global_options.flags to %s" % runyaml['flags'])
+                    print("DEBUG: Setting global_options.flags to %s" %
+                          runyaml['flags'])
                 # convert list of dicts to single dict
                 global_options.flags = dict(ChainMap(*runyaml['flags']))
             else:
@@ -94,7 +97,8 @@ class CheckPyCurlMulti(object):
             cpc = CheckPyCurl(options=checkobj, prev_matches=search_results)
             rc = cpc.curl()
             cpc.results['stage'] = counter
-            total_req_time += cpc.results['totaltime']  # store running total of reqtime
+            # store running total of reqtime
+            total_req_time += cpc.results['totaltime']
             cpc.results['totaltime'] = total_req_time
             if rc != 0 and checkobj.failaterror:
                 self.rm_tmpfile()
@@ -132,7 +136,8 @@ class CheckPyCurl(object):
                 print("Flag: %s: %s" % (flag, self.options.flags[flag]))
             if flag == 'resolve':
                 # args have to be list
-                c.setopt(getattr(c, flag.upper()), self.options.flags[flag].split(','))
+                c.setopt(getattr(c, flag.upper()),
+                         self.options.flags[flag].split(','))
             else:
                 c.setopt(getattr(c, flag.upper()), self.options.flags[flag])
         # if a POST, set up options
@@ -147,7 +152,8 @@ class CheckPyCurl(object):
                 if check_postdata is not None:
                     (url_match_stage, url_match_num) = (int(check_postdata.group(1)),
                                                         int(check_postdata.group(2)))
-                    postdata = self.prev_matches[url_match_stage].group(url_match_num)
+                    postdata = self.prev_matches[url_match_stage].group(
+                        url_match_num)
                 post_params[postname] = postdata
             if self.options.debug:
                 print("POST fields: %s" % str(post_params))
@@ -156,18 +162,16 @@ class CheckPyCurl(object):
             c.setopt(pycurl.POST, 1)
         return c
 
-
     def _set_manual_options(self, c):
         '''set manual options on curl object'''
         c.setopt(c.URL, self.options.url)
         c.setopt(c.CONNECTTIMEOUT, self.options.connecttimeout)
         c.setopt(c.TIMEOUT, self.options.timeout)
         c.setopt(c.FOLLOWLOCATION, self.options.location)
-        c.setopt(c.SSL_VERIFYPEER, self.options.insecure)
+        c.setopt(c.SSL_VERIFYPEER, not self.options.insecure)
         c.setopt(c.USERAGENT, self.options.user_agent)
         c.setopt(c.VERBOSE, self.options.debug)
 
-    
     def curl(self):
         '''make the request'''
         buf = BytesIO()
@@ -186,7 +190,8 @@ class CheckPyCurl(object):
                 if int(self.successcheck) != int(c.getinfo(pycurl.HTTP_CODE)):
                     self.results['rc'] = 2
             elif self.successtest == 'regex':
-                search_res = re.search(self.successcheck, self.content, re.MULTILINE)
+                search_res = re.search(
+                    self.successcheck, self.content, re.MULTILINE)
                 if search_res is not None:
                     self.results['status'] = "%s found in %s" % (self.successcheck,
                                                                  self.options.url)
@@ -236,7 +241,8 @@ def get_cli_options():
                       dest="debug", action="store_true", default=False)
     parser.add_option("--insecure", dest="insecure", action="store_true",
                       default=False)
-    parser.add_option("--useragent", dest="user_agent", default="check_pycurl3")
+    parser.add_option("--useragent", dest="user_agent",
+                      default="check_pycurl3")
     parser.add_option("--flags", dest="flags", default="")
     options, args = parser.parse_args()
     if options.flags == '':
