@@ -33,7 +33,7 @@ class CheckPyCurlOptions(object):
         self.postdata = None
         self.failaterror = True
         self.debug = False
-        self.user_agent = "curl/7.66.0"
+        self.user_agent = "check_pycurl3"
         self.flags = []  # for other flags not explicitly in attr
 
 
