@@ -138,6 +138,9 @@ class CheckPyCurl(object):
                 # args have to be list
                 c.setopt(getattr(c, flag.upper()),
                          self.options.flags[flag].split(','))
+            elif flag == 'ipresolve':
+                # arg is pycurl const
+                c.setopt(getattr(c, flag.upper()), getattr(c, self.options.flags[flag].upper()))
             else:
                 c.setopt(getattr(c, flag.upper()), self.options.flags[flag])
         # if a POST, set up options

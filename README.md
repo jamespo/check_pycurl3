@@ -44,11 +44,18 @@ An alternate test is for presence of regex in the output (--test regex:t.st)
 
     check_pycurl3 --flags '{ "path_as_is": 1 }' -u https://jamespo.org.uk
 
+	# hardcode DNS resolution
 	check_pycurl3 --flags '{ "resolve": "www.reddit.com:443:151.101.129.140" }' \
 	-u https://www.reddit.com
 
 	# custom CA
 	check_pycurl3 -u https://nas.local:5555 --flags '{"cainfo": "/data/local_CA.crt"}'
+	
+	# force IPv6 check
+	/check_pycurl3 --flags '{ "ipresolve": "ipresolve_v6" }' -u https://google.com
+
+	# force IPv4 check
+	/check_pycurl3 --flags '{ "ipresolve": "ipresolve_v4" }' -u https://google.com
 
 
 **EXAMPLE RUNFILE**
