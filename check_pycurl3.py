@@ -192,7 +192,7 @@ class CheckPyCurl(object):
         # send the request
         try:
             c.perform()
-            self.content = buf.getvalue()
+            self.content = buf.getvalue().decode("utf-8")
             self.results["rc"] = 0
             self.results["status"] = "%s returned HTTP %s" % (
                 self.options.url,
