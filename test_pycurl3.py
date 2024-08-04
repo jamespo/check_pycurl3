@@ -40,6 +40,16 @@ class TestCheckPyCurl3(unittest.TestCase):
 		self.assertEqual(cpc.results['status'],
 						 '%s returned HTTP 200' % cp_options.url)
 
+	def test_simple_check_pycurl3_content(self):
+		cp_options = CheckPyCurlOptions()
+		cp_options.url = 'http://%s:%s' % (self.host, self.port)
+		cp_options.test = 'regex:Hello'
+		cpc = CheckPyCurl(cp_options)
+		rc = cpc.curl()
+		self.assertEqual(rc, 0)
+		self.assertEqual(cpc.results['status'],
+						 'Hello found in %s' % cp_options.url)
+
 	def test_simple_check_pycurl3_404(self):
 		cp_options = CheckPyCurlOptions()
 		cp_options.url = 'http://%s:%s/absent' % (self.host, self.port)
