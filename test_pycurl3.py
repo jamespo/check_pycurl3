@@ -1,11 +1,13 @@
 #!/bin/env python3
 
-from check_pycurl3 import CheckPyCurl, CheckPyCurlOptions
+from check_pycurl3 import CheckPyCurl, CheckPyCurlOptions, get_cli_options
 import logging
 import threading
 import unittest
+import unittest.mock
 import flask
 import flask.cli
+import sys
 from time import sleep
 
 
@@ -59,6 +61,12 @@ class TestCheckPyCurl3(unittest.TestCase):
 		self.assertEqual(cpc.results['status'],
 						 '%s returned HTTP 404' % cp_options.url)
 
+	def test_cli_parsing(self):
+		test_url = "https://www.google.com"
+		testargs = ["check_pycurl3.py", "-u", test_url]
+		with unittest.mock.patch.object(sys, 'argv', testargs):
+			options = get_cli_options()
+			assert options.url == test_url
 
 if __name__ == '__main__':
     unittest.main()

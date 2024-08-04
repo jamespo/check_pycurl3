@@ -267,7 +267,7 @@ def get_cli_options():
     parser.add_option("--insecure", dest="insecure", action="store_true", default=False)
     parser.add_option("--useragent", dest="user_agent", default="check_pycurl3")
     parser.add_option("--flags", dest="flags", default="")
-    options, args = parser.parse_args()
+    options, _ = parser.parse_args()
     if options.flags == "":
         options.flags = {}
     else:
