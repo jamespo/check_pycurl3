@@ -139,17 +139,18 @@ class CheckPyCurl(object):
             # "dynamic" curl option setting
             if self.options.debug:
                 print("Flag: %s: %s" % (flag, self.options.flags[flag]))
+            flag_attr = getattr(c, flag.upper())
             if flag == "resolve":
                 # args have to be list
-                c.setopt(getattr(c, flag.upper()), self.options.flags[flag].split(","))
+                c.setopt(flag_attr, self.options.flags[flag].split(","))
             elif flag == "ipresolve":
                 # arg is pycurl const
                 c.setopt(
-                    getattr(c, flag.upper()),
+					flag_attr,
                     getattr(c, self.options.flags[flag].upper()),
                 )
             else:
-                c.setopt(getattr(c, flag.upper()), self.options.flags[flag])
+                c.setopt(flag_attr, self.options.flags[flag])
         # if a POST, set up options
         if getattr(self.options, "postdata", None) is not None:
             post_params = {}

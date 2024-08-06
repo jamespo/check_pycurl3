@@ -14,21 +14,21 @@ from time import sleep
 class TestCheckPyCurl3(unittest.TestCase):
 
 	@classmethod
-	def setUpClass(self):
-		self.app = flask.Flask(__name__)
+	def setUpClass(cls):
+		cls.app = flask.Flask(__name__)
 		# make flask quiet
 		logging.getLogger('werkzeug').disabled = True
 		flask.cli.show_server_banner = lambda *args: None
-		self.host = '127.0.0.1'
-		self.port = 17171
-		self.flask = threading.Thread(target=lambda: self.app.run(host=self.host, port=self.port,
+		cls.host = '127.0.0.1'
+		cls.port = 17171
+		cls.flask = threading.Thread(target=lambda: cls.app.run(host=cls.host, port=cls.port,
 																  debug=False, use_reloader=False),
 									  daemon=True)
-		self.flask.start()
+		cls.flask.start()
 		# give flask thread a chance to start
 		sleep(1)
 
-		@self.app.route('/')
+		@cls.app.route('/')
 		def root_url():
 			return 'Hello, World!'
 
