@@ -1,7 +1,8 @@
 #!/bin/env python3
 
-from check_pycurl3 import CheckPyCurl, CheckPyCurlOptions, get_cli_options
+from check_pycurl3 import CheckPyCurl, CheckPyCurlOptions, CheckPyCurlMulti, get_cli_options
 import logging
+import os
 import os.path
 import shlex
 import shutil
@@ -36,6 +37,17 @@ class TestCheckPyCurl3(unittest.TestCase):
 		@cls.app.route('/')
 		def root_url():
 			return 'Hello, World!'
+
+	def test_runfile(self):
+		runfile = tempfile.NamedTemporaryFile(delete=False)
+		runfile_contents = "---\n\nurls:\n  - url: http://%s:%s\n" % (self.host, self.port)
+		runfile.write(runfile_contents.encode("utf-8"))
+		runfile.close()
+		cpm = CheckPyCurlMulti(runfile.name)
+		cpm.parse_runfile()
+		cpc = cpm.check_runfile()
+		os.remove(runfile.name)
+		self.assertEqual(cpc.results["rc"], 0)
 
 
 	def test_simple_check_pycurl3_200(self):
