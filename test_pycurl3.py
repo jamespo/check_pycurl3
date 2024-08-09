@@ -2,6 +2,10 @@
 
 from check_pycurl3 import CheckPyCurl, CheckPyCurlOptions, get_cli_options
 import logging
+import os.path
+import shlex
+import subprocess
+import tempfile
 import threading
 import unittest
 import unittest.mock
@@ -67,6 +71,53 @@ class TestCheckPyCurl3(unittest.TestCase):
 		with unittest.mock.patch.object(sys, 'argv', testargs):
 			options = get_cli_options()
 			assert options.url == test_url
+
+
+class TestHTTPSCheckPyCurl3(unittest.TestCase):
+
+	@classmethod
+	def genSelfSigned(cls):
+		'''generate self-signed'''
+		cls.tmpdir = tempfile.mkdtemp()
+		cls.cert = os.path.join(cls.tmpdir, 'flask.crt')
+		cls.key = os.path.join(cls.tmpdir, 'flask.key')
+		create_cert = '/bin/openssl req -x509 -newkey rsa:4096 -keyout %s -out %s -sha256 -days 2 -nodes -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=localhost"' % (cls.key, cls.cert)
+		subprocess.run(shlex.split(create_cert))
+
+	@classmethod
+	def setUpClass(cls):
+		cls.app = flask.Flask(__name__)
+		# make flask quiet
+		logging.getLogger('werkzeug').disabled = True
+		flask.cli.show_server_banner = lambda *args: None
+		cls.genSelfSigned()
+		cls.host = 'localhost'
+		cls.port = 17173
+		cls.flask = threading.Thread(target=lambda: cls.app.run(host=cls.host, port=cls.port,
+																ssl_context='adhoc',
+																debug=False, use_reloader=False),
+									 daemon=True)
+		cls.flask.start()
+		# give flask thread a chance to start
+		sleep(1)
+
+		@cls.app.route('/')
+		def root_url():
+			return 'Hello, World!'
+
+	def test_https_check_pycurl3_200(self):
+		cp_options = CheckPyCurlOptions()
+		cp_options.url = 'https://%s:%s' % (self.host, self.port)
+		cp_options.insecure = True  # self-signed
+		cpc = CheckPyCurl(cp_options)
+		rc = cpc.curl()
+		print(cpc.results['status'])
+		self.assertEqual(rc, 0)
+		self.assertEqual(cpc.results['status'],
+						 '%s returned HTTP 200' % cp_options.url)
+		print('also got here')
+
+
 
 if __name__ == '__main__':
     unittest.main()
