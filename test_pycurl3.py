@@ -4,6 +4,7 @@ from check_pycurl3 import CheckPyCurl, CheckPyCurlOptions, get_cli_options
 import logging
 import os.path
 import shlex
+import shutil
 import subprocess
 import tempfile
 import threading
@@ -81,8 +82,9 @@ class TestHTTPSCheckPyCurl3(unittest.TestCase):
 		cls.tmpdir = tempfile.mkdtemp()
 		cls.cert = os.path.join(cls.tmpdir, 'flask.crt')
 		cls.key = os.path.join(cls.tmpdir, 'flask.key')
-		create_cert = '/bin/openssl req -x509 -newkey rsa:4096 -keyout %s -out %s -sha256 -days 2 -nodes -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=localhost"' % (cls.key, cls.cert)
-		subprocess.run(shlex.split(create_cert))
+		create_cert = '/bin/openssl req -x509 -newkey rsa:2048 -keyout %s -out %s -sha256 -days 2 -nodes -subj "/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=localhost"' % (cls.key, cls.cert)
+		subprocess.run(shlex.split(create_cert), stdout = subprocess.DEVNULL,
+					   stderr = subprocess.DEVNULL)
 
 	@classmethod
 	def setUpClass(cls):
@@ -94,7 +96,7 @@ class TestHTTPSCheckPyCurl3(unittest.TestCase):
 		cls.host = 'localhost'
 		cls.port = 17173
 		cls.flask = threading.Thread(target=lambda: cls.app.run(host=cls.host, port=cls.port,
-																ssl_context='adhoc',
+																ssl_context=(cls.cert, cls.key),
 																debug=False, use_reloader=False),
 									 daemon=True)
 		cls.flask.start()
@@ -111,12 +113,14 @@ class TestHTTPSCheckPyCurl3(unittest.TestCase):
 		cp_options.insecure = True  # self-signed
 		cpc = CheckPyCurl(cp_options)
 		rc = cpc.curl()
-		print(cpc.results['status'])
 		self.assertEqual(rc, 0)
 		self.assertEqual(cpc.results['status'],
 						 '%s returned HTTP 200' % cp_options.url)
-		print('also got here')
 
+	@classmethod
+	def tearDownClass(cls):
+		"""clean up temp cert dir"""
+		shutil.rmtree(cls.tmpdir)
 
 
 if __name__ == '__main__':
