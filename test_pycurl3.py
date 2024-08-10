@@ -21,6 +21,7 @@ class TestCheckPyCurl3(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
+		"""create localhost http instance in thread"""
 		cls.app = flask.Flask(__name__)
 		# make flask quiet
 		logging.getLogger('werkzeug').disabled = True
@@ -39,6 +40,7 @@ class TestCheckPyCurl3(unittest.TestCase):
 			return 'Hello, World!'
 
 	def test_runfile(self):
+		"""create simple runfile & test"""
 		runfile = tempfile.NamedTemporaryFile(delete=False)
 		runfile_contents = "---\n\nurls:\n  - url: http://%s:%s\n" % (self.host, self.port)
 		runfile.write(runfile_contents.encode("utf-8"))
@@ -51,6 +53,7 @@ class TestCheckPyCurl3(unittest.TestCase):
 
 
 	def test_simple_check_pycurl3_200(self):
+		"""simple localhost 200"""
 		cp_options = CheckPyCurlOptions()
 		cp_options.url = 'http://%s:%s' % (self.host, self.port)
 		cpc = CheckPyCurl(cp_options)
@@ -60,6 +63,7 @@ class TestCheckPyCurl3(unittest.TestCase):
 						 '%s returned HTTP 200' % cp_options.url)
 
 	def test_simple_check_pycurl3_content(self):
+		"""test content of response"""
 		cp_options = CheckPyCurlOptions()
 		cp_options.url = 'http://%s:%s' % (self.host, self.port)
 		cp_options.test = 'regex:Hello'
@@ -70,6 +74,7 @@ class TestCheckPyCurl3(unittest.TestCase):
 						 'Hello found in %s' % cp_options.url)
 
 	def test_simple_check_pycurl3_404(self):
+		"""test 404"""
 		cp_options = CheckPyCurlOptions()
 		cp_options.url = 'http://%s:%s/absent' % (self.host, self.port)
 		cpc = CheckPyCurl(cp_options)
@@ -79,6 +84,7 @@ class TestCheckPyCurl3(unittest.TestCase):
 						 '%s returned HTTP 404' % cp_options.url)
 
 	def test_cli_parsing(self):
+		"""test cli arg parsing"""
 		test_url = "https://www.google.com"
 		testargs = ["check_pycurl3.py", "-u", test_url]
 		with unittest.mock.patch.object(sys, 'argv', testargs):
@@ -90,7 +96,7 @@ class TestHTTPSCheckPyCurl3(unittest.TestCase):
 
 	@classmethod
 	def genSelfSigned(cls):
-		'''generate self-signed'''
+		'''generate self-signed cert'''
 		cls.tmpdir = tempfile.mkdtemp()
 		cls.cert = os.path.join(cls.tmpdir, 'flask.crt')
 		cls.key = os.path.join(cls.tmpdir, 'flask.key')
@@ -100,6 +106,7 @@ class TestHTTPSCheckPyCurl3(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
+		"""create localhost https instance in thread"""
 		cls.app = flask.Flask(__name__)
 		# make flask quiet
 		logging.getLogger('werkzeug').disabled = True
@@ -128,6 +135,15 @@ class TestHTTPSCheckPyCurl3(unittest.TestCase):
 		self.assertEqual(rc, 0)
 		self.assertEqual(cpc.results['status'],
 						 '%s returned HTTP 200' % cp_options.url)
+
+	def test_failcert_check_pycurl3_200(self):
+		"""check for selfsigned failure"""
+		cp_options = CheckPyCurlOptions()
+		cp_options.url = 'https://%s:%s' % (self.host, self.port)
+		cpc = CheckPyCurl(cp_options)
+		rc = cpc.curl()
+		self.assertEqual(rc, 2)
+		self.assertEqual(cpc.results['status'], 'SSL certificate problem: self-signed certificate')
 
 	@classmethod
 	def tearDownClass(cls):
