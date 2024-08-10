@@ -146,7 +146,7 @@ class CheckPyCurl(object):
             elif flag == "ipresolve":
                 # arg is pycurl const
                 c.setopt(
-					flag_attr,
+                    flag_attr,
                     getattr(c, self.options.flags[flag].upper()),
                 )
             else:
@@ -250,6 +250,7 @@ def get_cli_options():
     )
     parser.add_option("--connect-timeout", dest="connecttimeout", default=5)
     parser.add_option("--timeout", dest="timeout", default=10)
+    parser.add_option("--postdata", dest="postdata", help="var1:value1,var2:value2")
     parser.add_option("--proxy", dest="proxy")
     parser.add_option(
         "--location",
@@ -273,6 +274,8 @@ def get_cli_options():
         options.flags = {}
     else:
         options.flags = json.loads(options.flags)
+    if options.postdata is not None:
+        options.postdata = options.postdata.split(',')
     return options
 
 

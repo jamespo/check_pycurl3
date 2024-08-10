@@ -57,6 +57,8 @@ An alternate test is for presence of regex in the output (--test regex:t.st)
 	# force IPv4 check
 	check_pycurl3 --flags '{ "ipresolve": "ipresolve_v4" }' -u https://google.com
 
+	# POST test
+	check_pycurl3 -u https://www.google.com --postdata 'username:wibble'
 
 **EXAMPLE RUNFILE**
 
