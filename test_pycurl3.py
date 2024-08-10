@@ -39,6 +39,10 @@ class TestCheckPyCurl3(unittest.TestCase):
 		def root_url():
 			return 'Hello, World!'
 
+		@cls.app.route('/posttest', methods=['POST'])
+		def posttest_url():
+			return 'a=%s b=%s' % (flask.request.values['a'], flask.request.values['b'])
+
 	def test_runfile(self):
 		"""create simple runfile & test"""
 		runfile = tempfile.NamedTemporaryFile(delete=False)
@@ -51,8 +55,7 @@ class TestCheckPyCurl3(unittest.TestCase):
 		os.remove(runfile.name)
 		self.assertEqual(cpc.results["rc"], 0)
 
-
-	def test_simple_check_pycurl3_200(self):
+	def test_simple_200(self):
 		"""simple localhost 200"""
 		cp_options = CheckPyCurlOptions()
 		cp_options.url = 'http://%s:%s' % (self.host, self.port)
@@ -62,7 +65,19 @@ class TestCheckPyCurl3(unittest.TestCase):
 		self.assertEqual(cpc.results['status'],
 						 '%s returned HTTP 200' % cp_options.url)
 
-	def test_simple_check_pycurl3_content(self):
+	def test_simple_post(self):
+		"""simple localhost POST"""
+		cp_options = CheckPyCurlOptions()
+		cp_options.url = 'http://%s:%s/posttest' % (self.host, self.port)
+		cp_options.postdata = ['a:1', 'b:2']
+		cp_options.test = 'regex:^a=1 b=2'
+		cpc = CheckPyCurl(cp_options)
+		rc = cpc.curl()
+		self.assertEqual(rc, 0)
+		self.assertEqual(cpc.results['status'],
+						 '^a=1 b=2 found in %s' % cp_options.url)
+
+	def test_simple_content(self):
 		"""test content of response"""
 		cp_options = CheckPyCurlOptions()
 		cp_options.url = 'http://%s:%s' % (self.host, self.port)
@@ -73,7 +88,7 @@ class TestCheckPyCurl3(unittest.TestCase):
 		self.assertEqual(cpc.results['status'],
 						 'Hello found in %s' % cp_options.url)
 
-	def test_simple_check_pycurl3_404(self):
+	def test_simple_404(self):
 		"""test 404"""
 		cp_options = CheckPyCurlOptions()
 		cp_options.url = 'http://%s:%s/absent' % (self.host, self.port)
@@ -126,7 +141,7 @@ class TestHTTPSCheckPyCurl3(unittest.TestCase):
 		def root_url():
 			return 'Hello, World!'
 
-	def test_https_check_pycurl3_200(self):
+	def test_https_200(self):
 		cp_options = CheckPyCurlOptions()
 		cp_options.url = 'https://%s:%s' % (self.host, self.port)
 		cp_options.insecure = True  # self-signed
@@ -136,7 +151,7 @@ class TestHTTPSCheckPyCurl3(unittest.TestCase):
 		self.assertEqual(cpc.results['status'],
 						 '%s returned HTTP 200' % cp_options.url)
 
-	def test_failcert_check_pycurl3_200(self):
+	def test_failcert_200(self):
 		"""check for selfsigned failure"""
 		cp_options = CheckPyCurlOptions()
 		cp_options.url = 'https://%s:%s' % (self.host, self.port)

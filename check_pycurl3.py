@@ -13,7 +13,7 @@ import sys
 import os
 import re
 import yaml
-import urllib
+from urllib.parse import urlencode
 import copy
 from optparse import OptionParser
 
@@ -169,7 +169,7 @@ class CheckPyCurl(object):
                 post_params[postname] = postdata
             if self.options.debug:
                 print("POST fields: %s" % str(post_params))
-            resp_data = urllib.urlencode(post_params)
+            resp_data = urlencode(post_params)
             c.setopt(pycurl.POSTFIELDS, resp_data)
             c.setopt(pycurl.POST, 1)
         return c
